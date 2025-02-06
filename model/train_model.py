@@ -25,24 +25,24 @@ def train_caddie_model(
     data_path="data/caddie_data.csv",
     model_out_path="caddie_model.pt",
     encoders_out_path="encoders.pkl",
-    label_col="recommended_club",   # The column with the "correct" or "best" club
+    label_col="recommended_club",   # the column with the "correct" or "best" club
     test_size=0.2,
     epochs=20,
     lr=0.001,
     hidden_dim=32
 ):
-    # Load the CSV dataset
+    # load the CSV dataset
     df = pd.read_csv(data_path)
 
-    # Separate features from label
+    # separate features from label
     # label is the recommended club, everything else is a feature
     feature_cols = [c for c in df.columns if c != label_col]
 
-    # Label-encode the club names
+    # label-encode the club names
     club_label_encoder = LabelEncoder()
     df[label_col] = club_label_encoder.fit_transform(df[label_col])
 
-    # Encode categorical features from inputs
+    # encode categorical features from inputs
     feature_encoders = {}
     X_encoded = pd.DataFrame()
 
@@ -54,7 +54,7 @@ def train_caddie_model(
         else:
             X_encoded[col] = df[col]
 
-    # Convert to numpy
+    # convert to numpy
     X_data = X_encoded.values.astype(np.float32)
     y_data = df[label_col].values  # integer labels
 
@@ -82,7 +82,7 @@ def train_caddie_model(
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    # Training loop
+    # training
     for epoch in range(epochs):
         model.train()
         optimizer.zero_grad()
@@ -92,13 +92,13 @@ def train_caddie_model(
         loss.backward()
         optimizer.step()
 
-        # Optional: track training accuracy
-        _, predicted = torch.max(outputs, 1)
+        # track training accuracy
+        predicted = torch.max(outputs, 1)
         acc = (predicted == y_train_t).float().mean()
 
         print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}, Train Acc: {acc.item():.4f}")
 
-    # Evaluate on test
+    # evaluate on test
     model.eval()
     with torch.no_grad():
         test_outputs = model(X_test_t)
@@ -106,7 +106,7 @@ def train_caddie_model(
         test_acc = (test_pred == y_test_t).float().mean()
     print(f"Test Accuracy: {test_acc.item():.4f}")
 
-    # Save
+    # save
     torch.save(model.state_dict(), model_out_path)
     encoder_bundle = {
         "club_label_encoder": club_label_encoder,
@@ -121,5 +121,5 @@ def train_caddie_model(
     print(f"Encoders saved to {encoders_out_path}")
 
 if __name__ == "__main__":
-    # Example usage:
+    # example usage:
     train_caddie_model()
